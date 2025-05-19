@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Notícias de Tecnologia - Feed TI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; }
+    header { background-color: #01426a; color: white; padding: 1.5rem; text-align: center; }
+    h1 { margin: 0; font-size: 1.8rem; }
+    .feeds { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; padding: 2rem; }
+    .card {
+      background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .card h2 { font-size: 1.1rem; margin: 0 0 0.5rem; color: #01426a; }
+    .card p { font-size: 0.95rem; color: #444; flex-grow: 1; }
+    .card a {
+      margin-top: 1rem; text-decoration: none; color: #ffffff; background: #01426a;
+      padding: 0.5rem; text-align: center; border-radius: 4px; font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌐 Notícias de Tecnologia - Mundo do TI</h1>
+    <p>Atualizado em tempo real com fontes nacionais e internacionais</p>
+  </header>
+  <div class="feeds" id="feedContainer"><p>Carregando notícias...</p></div>
+
+  <script>
+    const feeds = [
+      "https://api.rss2json.com/v1/api.json?rss_url=https://techcrunch.com/feed/",
+      "https://api.rss2json.com/v1/api.json?rss_url=https://www.theverge.com/rss/index.xml",
+      "https://api.rss2json.com/v1/api.json?rss_url=https://feed.feedburner.com/canaltech",
+      "https://api.rss2json.com/v1/api.json?rss_url=https://olhardigital.com.br/feed/",
+      "https://api.rss2json.com/v1/api.json?rss_url=https://www.technologyreview.com/feed/",
+      "https://api.rss2json.com/v1/api.json?rss_url=https://www.wired.com/feed/rss"
+    ];
+    const container = document.getElementById('feedContainer');
+    Promise.all(feeds.map(url => fetch(url).then(res => res.json())))
+      .then(results => {
+        container.innerHTML = "";
+        results.forEach(feed => {
+          feed.items.slice(0, 3).forEach(item => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+              <h2>${item.title}</h2>
+              <p>${item.description.replace(/<[^>]*>?/gm, '').slice(0, 200)}...</p>
+              <a href="${item.link}" target="_blank">Ler notícia</a>
+            `;
+            container.appendChild(card);
+          });
+        });
+      })
+      .catch(err => {
+        container.innerHTML = "<p>Erro ao carregar notícias. Tente novamente mais tarde.</p>";
+        console.error("Erro ao carregar RSS:", err);
+      });
+  </script>
+</body>
+</html>
