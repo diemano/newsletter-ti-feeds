@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Notícias de Tecnologia - Feed TI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -25,40 +25,60 @@
 <body>
   <header>
     <h1>🌐 Notícias de Tecnologia - Mundo do TI</h1>
-    <p>Atualizado em tempo real com fontes nacionais e internacionais</p>
+    <p>Atualizado automaticamente com fontes nacionais e internacionais</p>
   </header>
-  <div class="feeds" id="feedContainer"><p>Carregando notícias...</p></div>
+  <div class="feeds" id="feedContainer">
+    <p>Carregando notícias...</p>
+  </div>
 
   <script>
+    async function fetchRSS(feedUrl, limit = 3) {
+      const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(feedUrl);
+      const res = await fetch(proxyUrl);
+      const data = await res.json();
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(data.contents, 'application/xml');
+      const items = [...xml.querySelectorAll('item')].slice(0, limit);
+      return items.map(item => ({
+        title: item.querySelector('title')?.textContent || '',
+        link: item.querySelector('link')?.textContent || '',
+        description: item.querySelector('description')?.textContent || ''
+      }));
+    }
+
     const feeds = [
-      "https://api.rss2json.com/v1/api.json?rss_url=https://techcrunch.com/feed/",
-      "https://api.rss2json.com/v1/api.json?rss_url=https://www.theverge.com/rss/index.xml",
-      "https://api.rss2json.com/v1/api.json?rss_url=https://feed.feedburner.com/canaltech",
-      "https://api.rss2json.com/v1/api.json?rss_url=https://olhardigital.com.br/feed/",
-      "https://api.rss2json.com/v1/api.json?rss_url=https://www.technologyreview.com/feed/",
-      "https://api.rss2json.com/v1/api.json?rss_url=https://www.wired.com/feed/rss"
+      "https://techcrunch.com/feed/",
+      "https://www.theverge.com/rss/index.xml",
+      "https://feed.feedburner.com/canaltech",
+      "https://olhardigital.com.br/feed/",
+      "https://www.technologyreview.com/feed/",
+      "https://www.wired.com/feed/rss"
     ];
-    const container = document.getElementById('feedContainer');
-    Promise.all(feeds.map(url => fetch(url).then(res => res.json())))
-      .then(results => {
-        container.innerHTML = "";
-        results.forEach(feed => {
-          feed.items.slice(0, 3).forEach(item => {
-            const card = document.createElement("div");
-            card.className = "card";
-            card.innerHTML = `
-              <h2>${item.title}</h2>
-              <p>${item.description.replace(/<[^>]*>?/gm, '').slice(0, 200)}...</p>
-              <a href="${item.link}" target="_blank">Ler notícia</a>
+
+    const container = document.getElementById("feedContainer");
+
+    async function carregarNoticias() {
+      container.innerHTML = "";
+      for (const url of feeds) {
+        try {
+          const noticias = await fetchRSS(url);
+          noticias.forEach(n => {
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
+              <h2>${n.title}</h2>
+              <p>${n.description.replace(/<[^>]+>/g, '').slice(0, 200)}...</p>
+              <a href="${n.link}" target="_blank">Ler notícia</a>
             `;
-            container.appendChild(card);
+            container.appendChild(div);
           });
-        });
-      })
-      .catch(err => {
-        container.innerHTML = "<p>Erro ao carregar notícias. Tente novamente mais tarde.</p>";
-        console.error("Erro ao carregar RSS:", err);
-      });
+        } catch (e) {
+          console.error("Erro ao carregar:", url, e);
+        }
+      }
+    }
+
+    carregarNoticias();
   </script>
 </body>
 </html>
