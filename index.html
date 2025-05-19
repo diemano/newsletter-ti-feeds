@@ -14,7 +14,7 @@
       background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;
     }
-    .card h2 { font-size: 1.1rem; margin: 0 0 0.5rem; color: #01426a; }
+    .card h2 { font-size: 1rem; margin: 0 0 0.5rem; color: #01426a; }
     .card p { font-size: 0.95rem; color: #444; flex-grow: 1; }
     .card a {
       margin-top: 1rem; text-decoration: none; color: #ffffff; background: #01426a;
@@ -32,7 +32,7 @@
   </div>
 
   <script>
-    async function fetchRSS(feedUrl, limit = 3) {
+    async function fetchRSS(feedUrl, limit = 5) {
       const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(feedUrl);
       const res = await fetch(proxyUrl);
       const data = await res.json();
@@ -47,33 +47,33 @@
     }
 
     const feeds = [
-      "https://techcrunch.com/feed/",
-      "https://www.theverge.com/rss/index.xml",
-      "https://feed.feedburner.com/canaltech",
-      "https://olhardigital.com.br/feed/",
-      "https://www.technologyreview.com/feed/",
-      "https://www.wired.com/feed/rss"
+      { name: "TechCrunch", url: "https://techcrunch.com/feed/" },
+      { name: "The Verge", url: "https://www.theverge.com/rss/index.xml" },
+      { name: "Canaltech", url: "https://feed.feedburner.com/canaltech" },
+      { name: "Olhar Digital", url: "https://olhardigital.com.br/feed/" },
+      { name: "MIT Technology Review", url: "https://www.technologyreview.com/feed/" },
+      { name: "Wired", url: "https://www.wired.com/feed/rss" }
     ];
 
     const container = document.getElementById("feedContainer");
 
     async function carregarNoticias() {
       container.innerHTML = "";
-      for (const url of feeds) {
+      for (const feed of feeds) {
         try {
-          const noticias = await fetchRSS(url);
+          const noticias = await fetchRSS(feed.url, 5);
           noticias.forEach(n => {
             const div = document.createElement("div");
             div.className = "card";
             div.innerHTML = `
-              <h2>${n.title}</h2>
+              <h2>[${feed.name}] ${n.title}</h2>
               <p>${n.description.replace(/<[^>]+>/g, '').slice(0, 200)}...</p>
               <a href="${n.link}" target="_blank">Ler notícia</a>
             `;
             container.appendChild(div);
           });
         } catch (e) {
-          console.error("Erro ao carregar:", url, e);
+          console.error("Erro ao carregar:", feed.name, e);
         }
       }
     }
